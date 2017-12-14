@@ -7,12 +7,13 @@ temp_file_name_pattern="/home/chengzhengqian/.windowsfilter/temp%d.xwd"
 convert_file_name_pattern="/home/chengzhengqian/.windowsfilter/temp%d.png"
 processed_file_name_pattern="/home/chengzhengqian/.windowsfilter/processed%d.png"
 
-def update_index(index):
-    global temp_file_index, temp_file_name, convert_file_name,processed_file_name
-    temp_file_index=index
-    temp_file_name=temp_file_name_pattern%temp_file_index
-    convert_file_name=convert_file_name_pattern%temp_file_index
-    processed_file_name=processed_file_name_pattern%temp_file_index
+class  conf:
+    '''a class to hold a temperature configuration, necessary in multithread'''
+    def __init__(self,index):
+        self.temp_file_index=index
+        self.temp_file_name=temp_file_name_pattern%self.temp_file_index
+        self.convert_file_name=convert_file_name_pattern%self.temp_file_index
+        self.processed_file_name=processed_file_name_pattern%self.temp_file_index
 
 def ensure_directory(directory):
     if not os.path.exists(directory):
@@ -20,5 +21,5 @@ def ensure_directory(directory):
 
         
 ensure_directory(file_directory)        
-update_index(0)
+#update_index(0)
 

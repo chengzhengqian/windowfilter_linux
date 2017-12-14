@@ -10,7 +10,8 @@ import re
 import threading
 import send_key
 import time
-import imageProcess 
+import imageProcess
+
 
 def get_wininfo(id):
     p = subprocess.Popen(["xwininfo", "-id", id], stdout=PIPE)
@@ -28,57 +29,51 @@ def search_id(name="WindowsFilter"):
     return (output.decode()).split("\n")
 
 
-def xwd_id(id):
+def xwd_id(id, config):
     '''capture the screen of given windows, use xwininfo to find id'''
-    p = subprocess.run(["xwd", "-silent","-id", id, "-out", configure.temp_file_name])
-
-
-def clear_xwd():
-    p = subprocess.run(["rm",  configure.temp_file_name])
-
-
-def convert_image():
     p = subprocess.run(
-        ["convert", configure.temp_file_name, configure.convert_file_name])
+        ["xwd", "-silent", "-id", id, "-out", config.temp_file_name])
 
 
-thread_hold = 170
+def clear_xwd(config=0):
+    p = subprocess.run(["rm",  config.temp_file_name])
 
 
-def process_image():
+def convert_image(config=0):
+    p = subprocess.run(
+        ["convert", config.temp_file_name, config.convert_file_name])
+
+
+
+
+
+def process_image(config):
     global img, img_process
-    img = io.imread(configure.convert_file_name)
+    img = io.imread(config.convert_file_name)
     '''
     add image process code here, also, one can think about store them
     python is way to slow in doing this job
     '''
-
-    # w, h, c = img.shape
-    # for i in range(w):
-    #     for j in range(h):
-    #         c = sum(img[i, j,:])
-    #         if(c < thread_hold*3):
-    #             img[i, j,:] = [0, 0, 0]
     imageProcess.defaulProcess.processBitmap(img)
-    io.imsave(configure .processed_file_name, img)
-    
+    io.imsave(config .processed_file_name, img)
 
 
-def caputure_window(id='0x6000012', index=0):
-    configure.update_index(index)
-    xwd_id(id)
-    convert_image()
-    process_image()
-    clear_xwd()
+def caputure_window(id='0x6000012', config=0):
+    xwd_id(id, config)
+    convert_image(config)
+    process_image(config)
+    clear_xwd(config)
 
-def update_processed_image(index):
-    configure.update_index(index)
-    process_image()
-    
+
+def update_processed_image(config):
+    process_image(config)
+
 
 class CaptureThread (threading.Thread):
 
-    '''caputure the background pages, use page down as default'''
+    '''caputure the background pages, use page down as default
+    forward_number=0 indicates that we just processing the Bitmap
+    '''
 
     def __init__(self, host_id, target_id, init_index=0, next_page_command="Page_Down", forward_number=1):
         '''
@@ -92,26 +87,28 @@ class CaptureThread (threading.Thread):
         self.target_id = target_id
         self.forward_number = forward_number
 
-        
-    def send_key_stroke_and_capture(self):
-        if(self.next_page_command!=""):
+    def send_key_stroke_and_capture(self, config):
+        if(self.next_page_command != ""):
             print("send ", self.next_page_command)
             send_key.send_key(
                 self.host_id, self.target_id, keystroke=self.next_page_command)
             time.sleep(0.1)
         else:
             print("only capture content")
-        caputure_window(self.target_id, self.init_index)
+        caputure_window(self.target_id, config)
 
     def run(self):
-        if(self.forward_number==0):
+        current_configure = configure.conf(self.init_index)
+        if(self.forward_number == 0):
             print("update processed image only")
-            update_processed_image(self.init_index)
+            '''creat configure from index'''
+            update_processed_image(current_configure)
         else:
             for i in range(self.forward_number):
                 print(self.init_index, " is captured")
-                self.send_key_stroke_and_capture()
+                self.send_key_stroke_and_capture(current_configure)
                 self.init_index += 1
+                current_configure = configure.conf(self.init_index)
 
 
 if __name__ == "__main__":
