@@ -25,6 +25,7 @@ class MainWindow(Image):
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         Window.bind(on_key_down=self.on_key_down)
+        self.source="readme.png"
 
     def check_MWID(self):
         if(MWID == 0):
@@ -43,8 +44,9 @@ class MainWindow(Image):
     # self.source= (configure.processed_file_name)
 
     def on_key_down(self, object, keycode, scancode, name, modifiers):
+        '''handles the key input'''
         global cached_index, current_index
-        print(object, keycode, scancode, name, modifiers)
+        print("key pressed:", keycode, scancode, name, modifiers)
         if(name == 'q'):
             exit()
         if(not self.check_MWID()):
@@ -54,9 +56,9 @@ class MainWindow(Image):
         try:
             if(cached_index<0):
                 p = capture.CaptureThread(MWID, list_ids[list_index],init_index=0,
-                                          next_page_command="Page_Down", forward_number=2)
-                cached_index=1
-                current_index=0
+                                          next_page_command="", forward_number=1)
+                cached_index=0
+                current_index=-1
                 p.start()
             '''
             show original form
@@ -67,6 +69,21 @@ class MainWindow(Image):
             '''
             show processed form
             '''
+            if(name=="u"):
+                print("update processing")
+                '''forward_number=0 ensure it only updates from cached image'''
+                self.source = configure.convert_file_name_pattern%(current_index)
+                p = capture.CaptureThread(MWID, list_ids[list_index],current_index,
+                                          next_page_command="", forward_number=0)
+                p.start()
+            if(name=="c"):
+                '''just recapture the end of cached images'''
+                print("just recapture ", cached_index)
+                # cached_index = cached_index+1
+                p = capture.CaptureThread(MWID, list_ids[list_index],cached_index,
+                                          next_page_command="", forward_number=1)
+                p.start()
+                
             if(name == "i"):
                 print("nocache:", self.nocache)
                 self.source = configure.processed_file_name_pattern%(current_index)
@@ -74,16 +91,27 @@ class MainWindow(Image):
                 if(current_index>0):
                     current_index-=1
                     self.source=configure.processed_file_name_pattern%(current_index)
+                    self.reload()
                 else:
                     print("begining of history")
             if(name == "n"):
-                if(current_index>=cached_index-1):
+                '''advance the cached_index further if current_index=cached_index-1'''
+                if(current_index==cached_index-1):
                     cached_index = cached_index+1
                     p = capture.CaptureThread(MWID, list_ids[list_index],cached_index,
                                           next_page_command="Page_Down", forward_number=1)
                     p.start()
                 current_index+=1
                 self.source=configure.processed_file_name_pattern%(current_index)
+            if(name=="e"):
+                print("end of cached images")
+                current_index=cached_index
+                cached_index = cached_index+1
+                p = capture.CaptureThread(MWID, list_ids[list_index],cached_index,
+                                          next_page_command="Page_Down", forward_number=1)
+                p.start()
+                self.source=configure.processed_file_name_pattern%(current_index)
+
         except Exception as e:
             print(e)
 

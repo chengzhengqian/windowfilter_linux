@@ -30,7 +30,7 @@ def search_id(name="WindowsFilter"):
 
 def xwd_id(id):
     '''capture the screen of given windows, use xwininfo to find id'''
-    p = subprocess.run(["xwd", "-id", id, "-out", configure.temp_file_name])
+    p = subprocess.run(["xwd", "-silent","-id", id, "-out", configure.temp_file_name])
 
 
 def clear_xwd():
@@ -71,6 +71,10 @@ def caputure_window(id='0x6000012', index=0):
     process_image()
     clear_xwd()
 
+def update_processed_image(index):
+    configure.update_index(index)
+    process_image()
+    
 
 class CaptureThread (threading.Thread):
 
@@ -88,17 +92,26 @@ class CaptureThread (threading.Thread):
         self.target_id = target_id
         self.forward_number = forward_number
 
+        
     def send_key_stroke_and_capture(self):
-        send_key.send_key(
-            self.host_id, self.target_id, keystroke=self.next_page_command)
-        time.sleep(0.1)
+        if(self.next_page_command!=""):
+            print("send ", self.next_page_command)
+            send_key.send_key(
+                self.host_id, self.target_id, keystroke=self.next_page_command)
+            time.sleep(0.1)
+        else:
+            print("only capture content")
         caputure_window(self.target_id, self.init_index)
 
     def run(self):
-        for i in range(self.forward_number):
-            print(self.init_index, " is captured")
-            self.send_key_stroke_and_capture()
-            self.init_index += 1
+        if(self.forward_number==0):
+            print("update processed image only")
+            update_processed_image(self.init_index)
+        else:
+            for i in range(self.forward_number):
+                print(self.init_index, " is captured")
+                self.send_key_stroke_and_capture()
+                self.init_index += 1
 
 
 if __name__ == "__main__":

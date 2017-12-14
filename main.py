@@ -10,9 +10,10 @@ class ConsoleThread (threading.Thread):
         threading.Thread.__init__(self)
     def run(self):
         ui.help=help
-        input("press key to set main window id (ui.MWID)")
+        input("press key to set main window id (ui.MWID) and windows")
         ui.MWID=capture.search_id()[0]
         print("find {0}".format(ui.MWID))
+        l()
         while True:
             readline.parse_and_bind("tab: complete")
             command = input(">>>")
