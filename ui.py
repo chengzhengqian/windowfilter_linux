@@ -6,7 +6,7 @@ from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.uix.image import Image
 from kivy.uix.boxlayout import BoxLayout
-import configure 
+import configure
 import capture
 import send_key
 import time
@@ -16,6 +16,8 @@ ID for main window and target windows
 MWID = 0
 list_ids = []
 list_index = -1
+current_index = -1
+cached_index = -1
 
 
 class MainWindow(Image):
@@ -25,36 +27,65 @@ class MainWindow(Image):
         Window.bind(on_key_down=self.on_key_down)
 
     def check_MWID(self):
-        if(MWID==0):
+        if(MWID == 0):
             print("set MWD first, ")
             help()
             return False
         return True
 
     def check_INDEX(self):
-        if(list_index<0 or list_index>= len(list_ids)):
+        if(list_index < 0 or list_index >= len(list_ids)):
             print("set target index ")
             help()
             return False
         return True
 
+    # self.source= (configure.processed_file_name)
+
     def on_key_down(self, object, keycode, scancode, name, modifiers):
+        global cached_index, current_index
         print(object, keycode, scancode, name, modifiers)
         if(name == 'q'):
             exit()
         if(not self.check_MWID()):
             return
         if(not self.check_INDEX()):
-            return 
-        if(name == "o"):
-            self.source = configure.convert_file_name
-        if(name == "i"):
-            self.source = configure.processed_file_name
-        if(name == "n"):
-            send_key.send_key(MWID,target_id=list_ids[list_index],keystroke="Down")
-            time.sleep(0.1)
-            capture.caputure_window(list_ids[list_index])
-            self.source = configure.processed_file_name
+            return
+        try:
+            if(cached_index<0):
+                p = capture.CaptureThread(MWID, list_ids[list_index],init_index=0,
+                                          next_page_command="Page_Down", forward_number=2)
+                cached_index=1
+                current_index=0
+                p.start()
+            '''
+            show original form
+            '''
+            if(name == "o"):
+                print("nocache:", self.nocache)
+                self.source = configure.convert_file_name_pattern%(current_index)
+            '''
+            show processed form
+            '''
+            if(name == "i"):
+                print("nocache:", self.nocache)
+                self.source = configure.processed_file_name_pattern%(current_index)
+            if(name=="p"):
+                if(current_index>0):
+                    current_index-=1
+                    self.source=configure.processed_file_name_pattern%(current_index)
+                else:
+                    print("begining of history")
+            if(name == "n"):
+                if(current_index>=cached_index-1):
+                    cached_index = cached_index+1
+                    p = capture.CaptureThread(MWID, list_ids[list_index],cached_index,
+                                          next_page_command="Page_Down", forward_number=1)
+                    p.start()
+                current_index+=1
+                self.source=configure.processed_file_name_pattern%(current_index)
+        except Exception as e:
+            print(e)
 
     def on_touch_down(self, touch):
         print(touch)
