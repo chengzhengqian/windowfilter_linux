@@ -35,13 +35,18 @@ def ls():
 
 def set():
     index=input("windows index:")
-    ui.list_index=int(index)
+    try:
+        ui.list_index=int(index)
+    except Exception as e:
+        print(e)
 
 def l():
+    '''list and set windows'''
     ls()
     set()
     
 def help():
+    '''help hint if user does not set window yet'''
     print("use ls() to list, set() to set index")
     
 if __name__ == "__main__":

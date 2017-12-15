@@ -18,14 +18,17 @@ list_ids = []
 list_index = -1
 current_index = -1
 cached_index = -1
+is_ready_cached=False
 
 
 class MainWindow(Image):
 
     def __init__(self, **kwargs):
+        global is_ready_cached
         super(MainWindow, self).__init__(**kwargs)
         Window.bind(on_key_down=self.on_key_down)
         self.source="readme.png"
+        self.is_ready_cached=True
 
     def check_MWID(self):
         if(MWID == 0):
@@ -45,7 +48,7 @@ class MainWindow(Image):
 
     def on_key_down(self, object, keycode, scancode, name, modifiers):
         '''handles the key input'''
-        global cached_index, current_index
+        global cached_index, current_index, is_ready_cached
         print("key pressed:", keycode, scancode, name, modifiers)
         if(name == 'q'):
             exit()
@@ -59,7 +62,9 @@ class MainWindow(Image):
                                           next_page_command="", forward_number=1)
                 cached_index=0
                 current_index=-1
+                is_ready_cached=False
                 p.start()
+                
             '''
             show original form
             '''
@@ -94,12 +99,13 @@ class MainWindow(Image):
                     self.reload()
                 else:
                     print("begining of history")
-            if(name == "n"):
+            if(name == "n" and is_ready_cached):
                 '''advance the cached_index further if current_index=cached_index-1'''
                 if(current_index==cached_index-1):
                     cached_index = cached_index+1
                     p = capture.CaptureThread(MWID, list_ids[list_index],cached_index,
                                           next_page_command="Page_Down", forward_number=1)
+                    is_ready_cached=False
                     p.start()
                 current_index+=1
                 self.source=configure.processed_file_name_pattern%(current_index)

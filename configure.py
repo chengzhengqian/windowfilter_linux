@@ -21,5 +21,5 @@ def ensure_directory(directory):
 
         
 ensure_directory(file_directory)        
-#update_index(0)
+
 

@@ -11,7 +11,7 @@ import threading
 import send_key
 import time
 import imageProcess
-
+import ui
 
 def get_wininfo(id):
     p = subprocess.Popen(["xwininfo", "-id", id], stdout=PIPE)
@@ -109,7 +109,7 @@ class CaptureThread (threading.Thread):
                 self.send_key_stroke_and_capture(current_configure)
                 self.init_index += 1
                 current_configure = configure.conf(self.init_index)
-
+        ui.is_ready_cached=True
 
 if __name__ == "__main__":
     print(search_id())
