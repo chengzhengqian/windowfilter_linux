@@ -20,7 +20,7 @@ current_index = -1
 cached_index = -1
 is_ready_cached = False
 '''store the file in a ring'''
-MAX_NUMBER = 10
+MAX_NUMBER = 500
 is_finished_circle = False
 
 
