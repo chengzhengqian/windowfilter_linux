@@ -73,9 +73,10 @@ class CaptureThread (threading.Thread):
 
     '''caputure the background pages, use page down as default
     forward_number=0 indicates that we just processing the Bitmap
+    add book name
     '''
 
-    def __init__(self, host_id, target_id, init_index=0, next_page_command="Page_Down", forward_number=1):
+    def __init__(self, host_id, target_id, init_index=0, next_page_command="Page_Down", forward_number=1, book_name=""):
         '''
         init_index is the first index to be written with
         forward_number, the number of pages added to history
@@ -86,6 +87,7 @@ class CaptureThread (threading.Thread):
         self.host_id = host_id
         self.target_id = target_id
         self.forward_number = forward_number
+        self.book_name=book_name
 
     def send_key_stroke_and_capture(self, config):
         if(self.next_page_command != ""):
@@ -98,7 +100,7 @@ class CaptureThread (threading.Thread):
         caputure_window(self.target_id, config)
 
     def run(self):
-        current_configure = configure.conf(self.init_index)
+        current_configure = configure.conf(self.init_index,self.book_name)
         if(self.forward_number == 0):
             print("update processed image only")
             '''creat configure from index'''
@@ -108,7 +110,7 @@ class CaptureThread (threading.Thread):
                 print(self.init_index, " is captured")
                 self.send_key_stroke_and_capture(current_configure)
                 self.init_index += 1
-                current_configure = configure.conf(self.init_index)
+                current_configure = configure.conf(self.init_index,self.book_name)
         ui.is_ready_cached=True
 
 if __name__ == "__main__":

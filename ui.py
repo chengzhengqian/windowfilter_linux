@@ -20,8 +20,12 @@ current_index = -1
 cached_index = -1
 is_ready_cached = False
 '''store the file in a ring'''
-MAX_NUMBER = 500
+MAX_NUMBER = 200
 is_finished_circle = False
+
+'''hold a list of books and current index and cached index'''
+book_list={}
+current_book_name=""
 
 
 class MainWindow(Image):
@@ -64,7 +68,7 @@ class MainWindow(Image):
             if(cached_index < 0):
                 p = capture.CaptureThread(
                     MWID, list_ids[list_index], init_index=0,
-                                          next_page_command="", forward_number=1)
+                                          next_page_command="", forward_number=1,book_name=current_book_name)
                 cached_index = 0
                 current_index = -1
                 is_ready_cached = False
@@ -75,7 +79,7 @@ class MainWindow(Image):
             '''
             if(name == "o"):
                 print("nocache:", self.nocache)
-                self.source = configure.convert_file_name_pattern % (
+                self.source = configure.convert_file_name_pattern % (current_book_name,
                     current_index)
             '''
             show processed form
@@ -83,11 +87,11 @@ class MainWindow(Image):
             if(name == "u"):
                 print("update processing")
                 '''forward_number=0 ensure it only updates from cached image'''
-                self.source = configure.convert_file_name_pattern % (
+                self.source = configure.convert_file_name_pattern % (current_book_name,
                     current_index)
                 p = capture.CaptureThread(
                     MWID, list_ids[list_index], current_index,
-                                          next_page_command="", forward_number=0)
+                                          next_page_command="", forward_number=0,book_name=current_book_name)
                 p.start()
             if(name == "c"):
                 '''just recapture the end of cached images'''
@@ -95,12 +99,12 @@ class MainWindow(Image):
                 # cached_index = cached_index+1
                 p = capture.CaptureThread(
                     MWID, list_ids[list_index], cached_index,
-                                          next_page_command="", forward_number=1)
+                                          next_page_command="", forward_number=1,book_name=current_book_name)
                 p.start()
 
             if(name == "i"):
                 print("nocache:", self.nocache)
-                self.source = configure.processed_file_name_pattern % (
+                self.source = configure.processed_file_name_pattern % (current_book_name,
                     current_index)
             if(name == "p"):
                 can_go_back=False
@@ -114,7 +118,7 @@ class MainWindow(Image):
                 if(can_go_back):
                         current_index -= 1
                         current_index=current_index%MAX_NUMBER
-                        self.source = configure.processed_file_name_pattern % (
+                        self.source = configure.processed_file_name_pattern % (current_book_name,
                             current_index)                                    
                 else:
                     print("begining of history!")
@@ -131,12 +135,12 @@ class MainWindow(Image):
                         command="Page_Up"
                     p = capture.CaptureThread(
                         MWID, list_ids[list_index], cached_index,
-                                          next_page_command=command, forward_number=1)
+                                          next_page_command=command, forward_number=1,book_name=current_book_name)
                     is_ready_cached = False
                     p.start()
                 current_index += 1
                 current_index = current_index % MAX_NUMBER
-                self.source = configure.processed_file_name_pattern % (
+                self.source = configure.processed_file_name_pattern % (current_book_name,
                     current_index)
             if(name == "e"):
                 print("end of cached images")
@@ -145,9 +149,9 @@ class MainWindow(Image):
                 cached_index = cached_index % MAX_NUMBER
                 p = capture.CaptureThread(
                     MWID, list_ids[list_index], cached_index,
-                                          next_page_command="Page_Down", forward_number=1)
+                                          next_page_command="Page_Down", forward_number=1,book_name=current_book_name)
                 p.start()
-                self.source = configure.processed_file_name_pattern % (
+                self.source = configure.processed_file_name_pattern % (current_book_name,
                     current_index)
 
         except Exception as e:
